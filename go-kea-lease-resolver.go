@@ -24,6 +24,7 @@ var (
 	dbPort = flag.String("p", "3306", "database port")
 	dbUser = flag.String("u", "", "database user")
 	dbTable = flag.String("t", "lease4", "kea lease table")
+	listenPort = flag.String("listen", "53530", "listen port")
 	domain = flag.String("domain", "", "domain")
 	compress = flag.Bool("compress", false, "compress replies")
 )
@@ -85,7 +86,7 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 
 func serve(net string) {
 
-	server := &dns.Server{Addr: ":8053", Net: net, TsigSecret: nil}
+	server := &dns.Server{Addr: ":" + *listenPort, Net: net, TsigSecret: nil}
 	if err := server.ListenAndServe(); err != nil {
 		fmt.Printf("Failed to setup the "+net+" server: %s\n", err.Error())
 	}
