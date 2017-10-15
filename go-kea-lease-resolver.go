@@ -51,7 +51,7 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 		defer db.Close()
 
 		stmtOut, err := db.Prepare("SELECT address,expire FROM " +
-			*dbTable + " WHERE state=0 AND UPPER(hostname)=?")
+			*dbTable + " WHERE state=0 AND UPPER(hostname)=? ORDER BY expire DESC LIMIT 1")
 
 		if err != nil {
 			panic(err.Error())
