@@ -78,9 +78,9 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: uint32(ttl)},
 					A:   a.To4(),
 				}
-			}
 
-			m.Answer = append(m.Answer, rr)
+				m.Answer = append(m.Answer, rr)
+			}
 		}
 	}
 
