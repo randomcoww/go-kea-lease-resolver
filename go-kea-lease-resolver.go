@@ -50,31 +50,34 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 		}
 		defer db.Close()
 
-		stmtOut, err := db.Prepare("SELECT address,expire FROM " +
-			*dbTable + " WHERE state=0 AND UPPER(hostname)=? ORDER BY expire DESC LIMIT 1")
+		rows, err := db.Query("SELECT address,expire FROM " +
+				*dbTable + " WHERE state=0 AND UPPER(hostname)=? ORDER BY expire DESC",
+				strings.ToUpper(strings.TrimSuffix(m.Question[0].Name, ".")))
 
 		if err != nil {
 			panic(err.Error())
 		}
-		defer stmtOut.Close()
+		defer rows.Close()
 
-		var (
-			address int
-			expire time.Time
-			rr  dns.RR
-			a   net.IP
-			ttl int64
-		)
+		for rows.Next() {
+			var (
+				address int
+				expire time.Time
+				rr  dns.RR
+				a   net.IP
+				ttl int64
+			)
 
-		err = stmtOut.QueryRow(strings.ToUpper(strings.TrimSuffix(m.Question[0].Name, "."))).Scan(&address, &expire)
-		if err == nil {
+			err := rows.Scan(&address, &expire)
+			if err == nil {
 
-			a = int2ip(uint32(address))
-			ttl = expire.Unix() - time.Now().Unix()
+				a = int2ip(uint32(address))
+				ttl = expire.Unix() - time.Now().Unix()
 
-			rr = &dns.A{
-				Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: uint32(ttl)},
-				A:   a.To4(),
+				rr = &dns.A{
+					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: uint32(ttl)},
+					A:   a.To4(),
+				}
 			}
 
 			m.Answer = append(m.Answer, rr)
