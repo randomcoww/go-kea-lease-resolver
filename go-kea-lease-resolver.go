@@ -68,10 +68,8 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 			err := rows.Scan(&hostname, &expire)
 			if err == nil {
 
-				ttl := expire.Unix() - time.Now().Unix()
-
 				rr := &dns.PTR{
-					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypePTR, Class: dns.ClassINET, Ttl: uint32(ttl)},
+					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypePTR, Class: dns.ClassINET, Ttl: uint32(expire.Unix() - time.Now().Unix())},
 					Ptr: hostname + ".",
 				}
 
@@ -99,12 +97,9 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 			err := rows.Scan(&address, &expire)
 			if err == nil {
 
-				a := intToIP(uint32(address))
-				ttl := expire.Unix() - time.Now().Unix()
-
 				rr := &dns.A{
-					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: uint32(ttl)},
-					A:   a.To4(),
+					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: uint32(expire.Unix() - time.Now().Unix())},
+					A:   intToIP(uint32(address)).To4(),
 				}
 
 				m.Answer = append(m.Answer, rr)
