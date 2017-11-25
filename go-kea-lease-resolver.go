@@ -35,6 +35,8 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 	m.SetReply(r)
 	m.Compress = true
 
+	fmt.Println("Query:", m.Question[0].Name)
+
 	switch r.Question[0].Qtype {
 
 	default:
@@ -43,37 +45,40 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 	case dns.TypePTR:
 	 	arr := strings.Split(strings.ToUpper(strings.TrimSuffix(m.Question[0].Name, ".in-addr.arpa.")), ".")
 		size := len(arr) - 1
-		ip := make(net.IP, 4)
 
-		for i := range arr {
-			v, _ := strconv.ParseInt(arr[size - i], 10, 16)
-			ip[i] = byte(v)
-		}
+		if size == 3 {
+			ip := make(net.IP, 4)
 
-		rows, err := db.Query("SELECT hostname,expire FROM " +
-				*dbTable + " WHERE state=0 AND address=? ORDER BY expire DESC",
-				ipToInt(ip))
+			for i := range arr {
+				v, _ := strconv.ParseInt(arr[size - i], 10, 16)
+				ip[i] = byte(v)
+			}
 
-		if err != nil {
-			panic(err.Error())
-		}
-		defer rows.Close()
+			rows, err := db.Query("SELECT hostname,expire FROM " +
+					*dbTable + " WHERE state=0 AND address=? ORDER BY expire DESC",
+					ipToInt(ip))
 
-		var (
-			hostname string
-			expire time.Time
-		)
+			if err != nil {
+				panic(err.Error())
+			}
+			defer rows.Close()
 
-		for rows.Next() {
-			err := rows.Scan(&hostname, &expire)
-			if err == nil {
+			var (
+				hostname string
+				expire time.Time
+			)
 
-				rr := &dns.PTR{
-					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypePTR, Class: dns.ClassINET, Ttl: uint32(expire.Unix() - time.Now().Unix())},
-					Ptr: hostname + ".",
+			for rows.Next() {
+				err := rows.Scan(&hostname, &expire)
+				if err == nil {
+
+					rr := &dns.PTR{
+						Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypePTR, Class: dns.ClassINET, Ttl: uint32(expire.Unix() - time.Now().Unix())},
+						Ptr: hostname + ".",
+					}
+
+					m.Answer = append(m.Answer, rr)
 				}
-
-				m.Answer = append(m.Answer, rr)
 			}
 		}
 
