@@ -25,7 +25,8 @@ var (
 	dbPort = flag.String("p", "3306", "database port")
 	dbUser = flag.String("u", "", "database user")
 	dbTable = flag.String("t", "lease4", "kea lease table")
-	listenPort = flag.String("listen", "53530", "listen port")
+  listenPort = flag.String("listen", "53530", "listen port")
+	maxTtl = flag.Int("ttl", 300, "max ttl")
 	db *sql.DB
 )
 
@@ -71,7 +72,7 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 			if err == nil {
 
 				rr := &dns.PTR{
-					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypePTR, Class: dns.ClassINET, Ttl: uint32(expire.Unix() - time.Now().Unix())},
+					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypePTR, Class: dns.ClassINET, Ttl: getTtl(expire)},
 					Ptr: hostname + ".",
 				}
 
@@ -100,7 +101,7 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 			if err == nil {
 
 				rr := &dns.A{
-					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: uint32(expire.Unix() - time.Now().Unix())},
+					Hdr: dns.RR_Header{Name: m.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: getTtl(expire)},
 					A:   intToIP(uint32(address)).To4(),
 				}
 
@@ -110,6 +111,15 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	w.WriteMsg(m)
+}
+
+
+func getTtl(expire time.Time) uint32 {
+  ttl:= uint32(expire.Unix() - time.Now().Unix())
+  if ttl > uint32(*maxTtl) {
+    ttl = uint32(*maxTtl)
+  }
+  return ttl
 }
 
 
