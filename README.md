@@ -17,6 +17,7 @@ https://hub.docker.com/r/randomcoww/go-kea-lease-resolver/
     -p MySQL port
     -u Database user
     -t Kea lease table name (lease4 by default)
+    -ttl TTL of the DHCP lease is normally returned as TTL of the DNS record. Limit TTL to this value
     -listen Listen port for DNS requests (uses 53530 by default)
 
 ### Unbound    
