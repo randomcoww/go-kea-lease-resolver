@@ -25,7 +25,7 @@ var (
 	dbPort = flag.String("p", "3306", "database port")
 	dbUser = flag.String("u", "", "database user")
 	dbTable = flag.String("t", "lease4", "kea lease table")
-  listenPort = flag.String("listen", "53530", "listen port")
+	listenPort = flag.String("listen", "53530", "listen port")
 	maxTtl = flag.Int("ttl", 300, "max ttl")
 	db *sql.DB
 )
@@ -44,7 +44,7 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 		fallthrough
 
 	case dns.TypePTR:
-	 	arr := strings.Split(strings.ToUpper(strings.TrimSuffix(m.Question[0].Name, ".in-addr.arpa.")), ".")
+		arr := strings.Split(strings.ToUpper(strings.TrimSuffix(m.Question[0].Name, ".in-addr.arpa.")), ".")
 		size := len(arr) - 1
 		ip := make(net.IP, 4)
 
@@ -115,11 +115,11 @@ func handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 
 
 func getTtl(expire time.Time) uint32 {
-  ttl:= uint32(expire.Unix() - time.Now().Unix())
-  if ttl > uint32(*maxTtl) {
-    ttl = uint32(*maxTtl)
-  }
-  return ttl
+	ttl:= uint32(expire.Unix() - time.Now().Unix())
+	if ttl > uint32(*maxTtl) {
+		ttl = uint32(*maxTtl)
+	}
+	return ttl
 }
 
 
