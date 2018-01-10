@@ -1,1 +1,0 @@
-docker run --rm -v $HOME/go:/go -w /go/src/github.com/randomcoww/go-kea-lease-resolver golang:alpine go build -v
