@@ -11,7 +11,7 @@ RUN set -x \
   && go get -d ./... \
   && go build
 
-FROM alpine:latest
+FROM alpine:edge
 
 COPY --from=BUILD /go/src/goapp/goapp /
 
